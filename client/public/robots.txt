@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://appointment-booking-frontend-two.vercel.app/sitemap.xml
