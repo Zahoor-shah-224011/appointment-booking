@@ -227,7 +227,7 @@ const AllDoctors = () => {
     return specialtyMatch && searchMatch;
   });
 
-  // Helper to get a clean name without duplicate "Dr."''''';
+  // Helper to get a clean name without duplicate "Dr."''''';]
   const cleanName = (name) => {
     return name?.startsWith('Dr.') ? name : `Dr. ${name}`;
   };
