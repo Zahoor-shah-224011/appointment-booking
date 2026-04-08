@@ -191,6 +191,7 @@ import DoctorAppointments from './doctor/DoctorAppointments';
 import DoctorProfile from './doctor/DoctorProfile';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import DoctorProfilePage from './pages/DoctorProfilePage';
 
 function App() {
   const location = useLocation();
@@ -229,6 +230,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/appointment/:id" element={<DoctorDetails />} />
+            <Route path="/doctor-profile/:id" element={<DoctorProfilePage />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
             <Route path="/profile" element={<MyProfile />} />
             <Route path="/admin-login" element={<AdminLogin />} />

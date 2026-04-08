@@ -332,12 +332,12 @@ const AllDoctors = () => {
 >
   {/* Top section: circular image + verified icon */}
   <div className="flex items-start p-4 pb-2">
-   <div className="relative flex-shrink-0">
+ <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
   <img
     src={doctor.image || assets.doctor_placeholder}
     alt={doctor.name}
-    className="w-22 h-22 rounded-full object-cover object-top border-2 border-white shadow-sm"
-    style={{ objectPosition: 'center 20%' }}  // focuses on head/shoulders
+    className="absolute inset-0 w-full h-full object-cover"
+    style={{ objectPosition: 'center 15%' }}
     onError={(e) => (e.target.src = assets.doctor_placeholder)}
   />
   {/* Verified icon */}
@@ -398,7 +398,7 @@ const AllDoctors = () => {
   </div>
 
   {/* Fee */}
-  <p className="text-sm font-semibold text-indigo-600 mt-2">
+  <p className="text-sm font-semibold text-primary mt-2">
     Consultation Fee: ${doctor.fees || 50}
   </p>
 
