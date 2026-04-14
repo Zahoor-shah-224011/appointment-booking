@@ -19,7 +19,7 @@ const app = express();
 // 🌐 CORS Configuration
 // =====================
 const allowedOrigins = [
-  "http://localhost:5173",
+  // "http://localhost:5173",
   "http://localhost:3000",
 
   "https://appointment-booking-next-lemon.vercel.app", 
