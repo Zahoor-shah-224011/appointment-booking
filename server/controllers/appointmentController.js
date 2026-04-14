@@ -22,10 +22,15 @@ export const bookAppointment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
     }
 
-    // 3. Check if the time slot is already booked for this doctor on that date
+    // 3. Check if the time slot is already booked
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
     const existingAppointment = await Appointment.findOne({
       doctor: doctorId,
-      date: new Date(date).setHours(0,0,0,0), // ensure we compare only date part
+      date: { $gte: startOfDay, $lte: endOfDay },
       'timeSlot.start': timeSlot.start,
       'timeSlot.end': timeSlot.end,
     });
@@ -43,10 +48,17 @@ export const bookAppointment = async (req, res) => {
       notes,
       payment: {
         method: paymentMethod || 'offline',
-        amount: doctor.fees, // assuming doctor has a fees field
+        amount: doctor.fees,
         status: paymentMethod === 'online' ? 'paid' : 'unpaid',
       },
+      status: paymentMethod === 'online' ? 'confirmed' : 'pending', // optional: auto-confirm online
     });
+
+    // 5. If online payment, generate a Jitsi room name
+    if (paymentMethod === 'online') {
+      appointment.videoRoom = `appointment-${appointment._id}`;
+      await appointment.save();
+    }
 
     res.status(201).json({
       success: true,
@@ -55,7 +67,6 @@ export const bookAppointment = async (req, res) => {
     });
   } catch (error) {
     console.error('BOOK APPOINTMENT ERROR:', error);
-    // Handle duplicate key error (if index works)
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: 'Time slot already taken' });
     }
@@ -69,10 +80,10 @@ export const bookAppointment = async (req, res) => {
 export const getMyAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find({ patient: req.user._id })
-      .populate('doctor', 'name specialty image fees')
-      .sort({ date: -1, 'timeSlot.start': -1 });
-
-    res.json({ success: true, count: appointments.length, appointments });
+      .populate('doctor', 'name image specialty fees address')
+      .select('date timeSlot status payment videoRoom') // ✅ include videoRoom
+      .sort({ date: -1 });
+    res.json({ success: true, appointments });
   } catch (error) {
     console.error('GET MY APPOINTMENTS ERROR:', error);
     res.status(500).json({ success: false, message: 'Server error' });

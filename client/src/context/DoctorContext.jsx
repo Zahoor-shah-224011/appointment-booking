@@ -1,3 +1,5 @@
+
+
 // context/DoctorContext.jsx
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -26,7 +28,7 @@ export const DoctorProvider = ({ children }) => {
   useEffect(() => {
     const checkDoctorSession = async () => {
       try {
-        const { data } = await axios.get('/api/doctor/me'); // endpoint to get current doctor
+        const { data } = await axios.get('api/doctor/me'); // endpoint to get current doctor
         if (data.success) {
           setDoctor(data.doctor);
         } else {

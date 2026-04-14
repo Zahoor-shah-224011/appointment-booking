@@ -342,7 +342,7 @@ const AllDoctors = () => {
   />
   {/* Verified icon */}
   <img
-    src={assets.verified_icon}
+    src={images/assets.verified_icon}
     alt="Verified"
     className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full p-0.5"
   />

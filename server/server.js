@@ -20,7 +20,10 @@ const app = express();
 // =====================
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://appointment-booking-frontend-two.vercel.app", // 👈 Replace with your actual frontend URL
+  "http://localhost:3000",
+
+  "https://appointment-booking-next-lemon.vercel.app", 
+  "https://appointment-booking-frontend-two.vercel.app", 
 ];
 
 const corsOptions = {
@@ -37,6 +40,9 @@ const corsOptions = {
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
+
+
+
 // Handle preflight OPTIONS requests
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
@@ -45,6 +51,32 @@ app.use((req, res, next) => {
     next();
   }
 });
+
+
+// Test email route (temporary)
+app.get('/test-email', async (req, res) => {
+  try {
+    const { Resend } = await import('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { data, error } = await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: 'zahorchemist@gmail.com', // 🔁 Replace with your actual email
+      subject: 'Test Email',
+      html: '<p>Hello! This is a test email from your appointment system.</p>'
+    });
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ success: false, error });
+    }
+    res.json({ success: true, data });                   
+  } catch (err) {                                           
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+
 
 // =====================
 // 🔐 Other Middleware
@@ -88,6 +120,8 @@ app.use((err, req, res, next) => {
 
 // Connect to MongoDB immediately (top-level await works because "type": "module")
 await connectDB();
+
+
 
 // Conditionally start the server only when not on Vercel
 if (process.env.VERCEL !== '1') {

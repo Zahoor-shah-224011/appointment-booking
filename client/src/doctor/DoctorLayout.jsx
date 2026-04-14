@@ -9,21 +9,25 @@ const DoctorLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { doctor, axios, setDoctor } = useDoctors();
+  const { doctor, axios, setDoctor, authLoading } = useDoctors();
 
-  // Redirect to login if not authenticated
+  console.log('Doctor in layout:', doctor);
+
+  // Redirect only after auth check completes and no doctor is found
   useEffect(() => {
-    if (doctor === null) {
+    if (!authLoading && doctor === null) {
       navigate('/doctor/register', { replace: true });
     }
-  }, [doctor, navigate]);
+  }, [authLoading, doctor, navigate]);
 
-  // Optional: show loading while checking authentication
-  if (doctor === undefined) {
-    return <div className="text-center py-20">Loading...</div>;
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return <div className="text-center py-20">Checking session...</div>;
   }
-  if (doctor === null) {
-    return null; // will redirect in useEffect
+
+  // If not authenticated and auth check is done, render nothing (redirect happens in useEffect)
+  if (!authLoading && doctor === null) {
+    return null;
   }
 
   const menu = [

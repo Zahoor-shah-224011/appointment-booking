@@ -5,9 +5,10 @@ import { toast } from 'react-toastify';
 import { useAdmin } from '../context/adimContext';
 import { assets } from '../assets/assets';
 import { IoArrowBack } from 'react-icons/io5';
+
 const MyAppointments = () => {
   const navigate = useNavigate();
-  const { axios, user } = useAdmin(); // user is boolean true when logged in
+  const { axios, user } = useAdmin();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState(null);
@@ -55,8 +56,8 @@ const MyAppointments = () => {
       );
       if (data.success) {
         toast.success('Appointment cancelled');
-        setAppointments(prev =>
-          prev.map(app =>
+        setAppointments((prev) =>
+          prev.map((app) =>
             app._id === appointmentId ? { ...app, status: 'cancelled' } : app
           )
         );
@@ -71,14 +72,28 @@ const MyAppointments = () => {
     }
   };
 
-  // Placeholder for payment processing – integrate with your payment gateway
-  const handlePayment = async (appointment) => {
-    toast.info('Payment integration coming soon');
-    // Example: redirect to payment page or open modal
-    // navigate(`/payment/${appointment._id}`);
+  // Determine if the "Join Call" button should be shown
+  const canJoinCall = (appointment) => {
+    // Must have videoRoom, online payment, and status 'confirmed'
+    if (!appointment.videoRoom) return false;
+    if (appointment.payment?.method !== 'online') return false;
+    if (appointment.status !== 'confirmed') return false;
+
+    const now = new Date();
+    const appointmentDate = new Date(appointment.date);
+    const [hours, minutes] = appointment.timeSlot.start.split(':');
+    appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+    const diffMinutes = (appointmentDate - now) / 60000;
+    // Show button 15 minutes before to 30 minutes after
+    return diffMinutes <= 15 && diffMinutes >= -30;
   };
 
-  // Format date to "DD Month, YYYY"
+  // Placeholder for payment processing (unused for now)
+  const handlePayment = async (appointment) => {
+    toast.info('Payment integration coming soon');
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -88,13 +103,11 @@ const MyAppointments = () => {
     });
   };
 
-  // Format time from timeSlot object
   const formatTime = (timeSlot) => {
     if (!timeSlot) return '';
-    return timeSlot.start; // e.g., "10:00 AM"
+    return timeSlot.start;
   };
 
-  // Helper to get address string from doctor object
   const getAddressString = (address) => {
     if (!address) return 'Address not available';
     const { line1, line2, city, state } = address;
@@ -112,18 +125,17 @@ const MyAppointments = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <button
-                                onClick={() => {
-                                  navigate('/');
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                  className="inline-flex items-center ml-2 mt-0 justify-center gap-2 text-primary font-medium hover:text-primary-dull transition-all duration-300 self-start md:self-auto transition group-hover:translate-x-1"
-                              >
-                               <div className="group inline-flex items-center mb-4 cursor-pointer">
-                              <IoArrowBack className="w-7 h-7 transition-transform duration-200  group-hover:-translate-x-1" />
-                              <span className="ml-1"> </span>
-                            </div>
-                               
-                              </button>
+        onClick={() => {
+          navigate('/');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        className="inline-flex items-center ml-2 mt-0 justify-center gap-2 text-primary font-medium hover:text-primary-dull transition-all duration-300 self-start md:self-auto group-hover:translate-x-1"
+      >
+        <div className="group inline-flex items-center mb-4 cursor-pointer">
+          <IoArrowBack className="w-7 h-7 transition-transform duration-200 group-hover:-translate-x-1" />
+          <span className="ml-1"> </span>
+        </div>
+      </button>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
           My Appointments
@@ -166,7 +178,7 @@ const MyAppointments = () => {
                     {/* Details */}
                     <div className="flex-1 space-y-2">
                       <h2 className="text-xl font-semibold text-gray-900">
-                         {appointment.doctor?.name}
+                        {appointment.doctor?.name}
                       </h2>
                       <p className="text-gray-600">{appointment.doctor?.specialty}</p>
                       <div className="text-gray-700 text-sm space-y-1">
@@ -194,27 +206,32 @@ const MyAppointments = () => {
                       )}
                     </div>
 
-                    {/* Actions (Cancel & Pay) */}
+                    {/* Actions */}
                     <div className="flex flex-col justify-center items-end gap-3">
                       {isActive ? (
                         <>
-                          {/* {isUnpaid && (
+                          {/* Cancel button – only for offline appointments */}
+                          {appointment.payment?.method !== 'online' && (
                             <button
-                              onClick={() => handlePayment(appointment)}
-                              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/85 transition font-medium text-sm"
+                              onClick={() => handleCancel(appointment._id)}
+                              disabled={cancellingId === appointment._id}
+                              className="px-6 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition font-medium text-sm disabled:opacity-50"
                             >
-                              Pay Now
+                              {cancellingId === appointment._id ? 'Cancelling...' : 'Cancel appointment'}
                             </button>
-                          )} */}
-                         {appointment.status !== 'cancelled' && appointment.status !== 'completed' && appointment.payment?.method !== 'online' && (
-  <button
-    onClick={() => handleCancel(appointment._id)}
-    disabled={cancellingId === appointment._id}
-    className="px-6 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    {cancellingId === appointment._id ? 'Cancelling...' : 'Cancel appointment'}
-  </button>
-)}
+                          )}
+
+                          {/* Join Call button – for online confirmed appointments near the time */}
+                          {canJoinCall(appointment) && (
+                            <a
+                              href={`https://meet.jit.si/${appointment.videoRoom}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+                            >
+                              Join Call
+                            </a>
+                          )}
                         </>
                       ) : (
                         <span className="text-sm text-gray-400 italic">

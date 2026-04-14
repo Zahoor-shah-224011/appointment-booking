@@ -14,6 +14,10 @@ const appointmentSchema = new mongoose.Schema(
   required: true,
   index: true,
 },
+videoRoom: {
+  type: String,
+  default: null,
+},
     date: {
       type: Date,
       required: true,
