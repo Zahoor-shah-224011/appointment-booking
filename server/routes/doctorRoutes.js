@@ -6,7 +6,15 @@ import multerUpload from '../config/multer.js';
 
 
 const doctorRouter = express.Router();
-
+// Add this route BEFORE the protectDoctor middleware (so it's public)
+doctorRouter.get('/all', async (req, res) => {
+  try {
+    const doctors = await PresDoctor.find({}, '_id').lean();
+    res.json({ success: true, doctors });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
 doctorRouter.post('/login', doctorLogin);
 doctorRouter.post('/logout', doctorLogout);
